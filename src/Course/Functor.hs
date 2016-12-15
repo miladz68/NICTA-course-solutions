@@ -78,7 +78,7 @@ instance Functor Optional where
 instance Functor ((->) t) where
   (<$>) ::
     (a -> b)
-    -> (->) t a
+    -> (t -> a)
     -> (->) t b
   (<$>) f g = f.g
 

@@ -61,8 +61,7 @@ infixl 4 <*>
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+(<$>) f fa = pure f <*> fa
 
 -- | Insert into Id.
 --
@@ -74,14 +73,12 @@ instance Applicative Id where
   pure ::
     a
     -> Id a
-  pure =
-    error "todo: Course.Applicative pure#instance Id"
-  (<*>) :: 
+  pure = Id
+  (<*>) ::
     Id (a -> b)
     -> Id a
     -> Id b
-  (<*>) =
-    error "todo: Course.Applicative (<*>)#instance Id"
+  (<*>) (Id f) (Id a) = Id (f a)
 
 -- | Insert into a List.
 --
@@ -93,14 +90,12 @@ instance Applicative List where
   pure ::
     a
     -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure a = a :. Nil
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance List"
+  (<*>) lf lfa = foldRight (\x acc -> map x lfa ++ acc ) Nil lf
 
 -- | Insert into an Optional.
 --
@@ -118,14 +113,14 @@ instance Applicative Optional where
   pure ::
     a
     -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure = Full
   (<*>) ::
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance Optional"
+  (<*>) Empty _ = Empty
+  (<*>) _ Empty = Empty
+  (<*>) (Full f) (Full b) = Full (f b)
 
 -- | Insert into a constant function.
 --
@@ -148,16 +143,13 @@ instance Applicative Optional where
 instance Applicative ((->) t) where
   pure ::
     a
-    -> ((->) t a)
-  pure =
-    error "todo: Course.Applicative pure#((->) t)"
+    -> (->) t a
+  pure = const
   (<*>) ::
-    ((->) t (a -> b))
-    -> ((->) t a)
-    -> ((->) t b)
-  (<*>) =
-    error "todo: Course.Apply (<*>)#instance ((->) t)"
-
+    (->) t (a -> b)
+    -> (->) t a
+    -> (->) t b
+  (f <*>g ) x = f x (g x)
 
 -- | Apply a binary function in the environment.
 --
@@ -184,8 +176,7 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 =
-  error "todo: Course.Applicative#lift2"
+lift2 f fa fb = pure f <*> fa <*> fb
 
 -- | Apply a ternary function in the environment.
 --
@@ -216,8 +207,7 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Applicative#lift3"
+lift3 f fa fb fc = pure f <*> fa <*> fb <*> fc
 
 -- | Apply a quaternary function in the environment.
 --
@@ -249,8 +239,7 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Applicative#lift4"
+lift4 f fa fb fc fe = lift3 f fa fb fc <*> fe
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -275,8 +264,7 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Applicative#(*>)"
+(*>) fa fb = pure (const id) <*> fa <*> fb
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -301,8 +289,7 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Applicative#(<*)"
+(<*) fa fb = pure const <*> fa <*> fb
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -324,8 +311,8 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence Nil = pure Nil
+sequence (fa:.lfa) =  pure (:.) <*>  fa <*> sequence lfa
 
 -- | Replicate an effect a given number of times.
 --
@@ -348,8 +335,7 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA times fa = pure (replicate times) <*> fa
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -371,14 +357,19 @@ replicateA =
 -- >>> filtering (const $ True :. True :.  Nil) (1 :. 2 :. 3 :. Nil)
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
-filtering ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
-
+filtering :: Applicative f
+  => (a -> f Bool) -> List a -> f (List a)
+filtering _ Nil =  pure Nil
+filtering p la = foldRight (\x acc -> lift3 f (p x) (pure x) acc) (pure Nil) la
+  where
+    f :: Bool -> a ->List a -> List a
+    f cond a ls | cond = a:.ls
+                | otherwise = ls
+check :: Applicative f
+  =>  f Bool -> f (List a)
+check = undefined
+test :: Applicative f =>  (a -> f Bool) -> f (a ->  Bool)
+test = undefined
 -----------------------
 -- SUPPORT LIBRARIES --
 -----------------------
