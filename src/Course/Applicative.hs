@@ -365,11 +365,8 @@ filtering p la = foldRight (\x acc -> lift3 f (p x) (pure x) acc) (pure Nil) la
     f :: Bool -> a ->List a -> List a
     f cond a ls | cond = a:.ls
                 | otherwise = ls
-check :: Applicative f
-  =>  f Bool -> f (List a)
-check = undefined
-test :: Applicative f =>  (a -> f Bool) -> f (a ->  Bool)
-test = undefined
+
+
 -----------------------
 -- SUPPORT LIBRARIES --
 -----------------------

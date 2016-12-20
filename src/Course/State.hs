@@ -40,9 +40,10 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f (State fs) = State (applyFirst f.fs)
 
+applyFirst :: (a -> b) -> (a,c) -> (b,c)
+applyFirst f (a,c) = (f a,c)
 -- | Implement the `Applicative` instance for `State s`.
 --
 -- >>> runState (pure 2) 0
@@ -58,14 +59,12 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a = State (\s -> (a,s))
   (<*>) ::
     State s (a -> b)
     -> State s a
-    -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+    -> State s b
+  (<*>) sf sa = State $ \s -> (eval sf s (eval sa s),exec sa s)
 
 -- | Implement the `Bind` instance for `State s`.
 --
@@ -79,9 +78,9 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
-
+  (=<<) f sa = State (\s -> runState (f (eval sa s)) (exec sa s))
+    where
+      runRes = runState sa
 -- | Run the `State` seeded with `s` and retrieve the resulting state.
 --
 -- prop> \(Fun _ f) -> exec (State f) s == snd (runState (State f) s)
@@ -89,8 +88,7 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo: Course.State#exec"
+exec state s = snd $ runState state s
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -99,8 +97,7 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo: Course.State#eval"
+eval state s=  fst $ runState state s
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -108,8 +105,7 @@ eval =
 -- (0,0)
 get ::
   State s s
-get =
-  error "todo: Course.State#get"
+get = State (\s -> (s,s))
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -118,8 +114,7 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo: Course.State#put"
+put s = State (P.const ((),s))
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -140,9 +135,11 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo: Course.State#findM"
-
+findM _ Nil = pure Empty
+findM fa (a:.la) = fa a >>= f
+  where
+    f bool | bool = pure $ Full a
+           | otherwise = findM fa la
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
 --
@@ -154,8 +151,10 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat =
-  error "todo: Course.State#firstRepeat"
+firstRepeat la = fst $ runState (findM p la) Nil
+  where
+    p :: Ord a => a -> State (List a) Bool
+    p a = State (\s -> if a `elem` s then (True,s) else (False,a:.s))
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -167,8 +166,10 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct =
-  error "todo: Course.State#distinct"
+distinct la = reverse.snd $ runState (findM p la) Nil
+  where
+    p :: Ord a => a -> State (List a) Bool
+    p a = State (\s -> if a `elem` s then (False,s) else (False,a:.s))
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
@@ -194,5 +195,30 @@ distinct =
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy int = runHappyState (Continue,int:.Nil)
+
+data Step = Continue | Tr | Fa
+
+happyState :: State (List Integer) Step
+happyState = State (\s@(a:.ss) -> case () of
+   _ | sumOfSquare a `elem` ss -> (Fa,sumOfSquare a :. s)
+     | sumOfSquare a == 1 -> (Tr, s)
+     | otherwise -> (Continue,sumOfSquare a :. s)
+  )
+
+runHappyState :: (Step, List Integer) -> Bool
+runHappyState (Tr,_) = True
+runHappyState (Fa,_) = False
+runHappyState (Continue,la) = runHappyState $ runState happyState la
+
+sumOfSquare :: Integer -> Integer
+sumOfSquare num = sum $ map square (sepDigits num)
+
+square :: Num a => a -> a
+square a = a*a
+
+sepDigits :: Integer -> List Integer
+sepDigits num | abs num < 10 = num :.Nil
+              | otherwise = remi :. sepDigits ((num - remi) `div` 10)
+              where
+                remi = num `mod` 10
