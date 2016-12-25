@@ -1,18 +1,14 @@
-# Functional Programming Course
-
-![NICTA](http://i.imgur.com/sMXB9XB.jpg)
+#NICTA-Course solutions
 
 #### Special note
 
 If you are looking for the *exercises* (not the answers), please go to
 https://github.com/NICTA/course
 
-#### Introduction
-
 These are the solutions to nicta-course exercises for learning haskell.
 The exercises themselves can be found here : https://github.com/NICTA/course
 
-Please note the solutions here are done by a learner are there might be
+Please note the solutions provided here are done by a learner and there might be some
 bugs and some many ground for improvement.
 
 
