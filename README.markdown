@@ -26,7 +26,7 @@ After this, the following progression of modules is recommended:
 * `Course.FileIO` -> Done
 * `Course.State` -> Done
 * `Course.StateT` -> Done
-* `Course.Extend`
+* `Course.Extend` -> Done
 * `Course.Comonad`
 * `Course.Compose`
 * `Course.Traversable`
