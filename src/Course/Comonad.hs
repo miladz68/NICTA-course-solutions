@@ -32,8 +32,7 @@ instance Comonad Id where
   copure ::
     Id a
     -> a
-  copure =
-    error "todo: Course.Comonad copure#instance Id"
+  copure (Id a) = a
 
 -- | Witness that all things with (<<=) and copure also have (<$>).
 --
@@ -44,5 +43,4 @@ instance Comonad Id where
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Comonad#(<$>)"
+(<$>) f = (<<=) (f.copure)
