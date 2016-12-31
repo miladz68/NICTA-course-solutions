@@ -31,7 +31,7 @@ After this, the following progression of modules is recommended:
 * `Course.Compose` -> Done
 * `Course.Traversable` -> Done
 * `Course.ListZipper` -> Done
-* `Course.Parser` *(see also `Course.Person` for the parsing rules)*
+* `Course.Parser` -> Done
 * `Course.MoreParser`
 * `Course.JsonParser`
 * `Course.Interactive`
