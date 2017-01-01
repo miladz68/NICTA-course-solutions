@@ -32,7 +32,7 @@ After this, the following progression of modules is recommended:
 * `Course.Traversable` -> Done
 * `Course.ListZipper` -> Done
 * `Course.Parser` -> Done
-* `Course.MoreParser`
+* `Course.MoreParser` -> Done
 * `Course.JsonParser`
 * `Course.Interactive`
 * `Course.Anagrams`
