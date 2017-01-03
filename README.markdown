@@ -35,6 +35,6 @@ After this, the following progression of modules is recommended:
 * `Course.MoreParser` -> Done
 * `Course.JsonParser` -> Done
 * `Course.Interactive` -> Done
-* `Course.Anagrams`
-* `Course.FastAnagrams`
+* `Course.Anagrams` -> Done
+* `Course.FastAnagrams` -> Done
 * `Course.Cheque`

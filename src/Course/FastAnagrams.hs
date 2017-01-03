@@ -8,14 +8,22 @@ import Course.List
 import Course.Functor
 import qualified Data.Set as S
 
+import Course.Monad
+
+import Course.Applicative
+import Course.Traversable
+import Course.Optional
+
 -- Return all anagrams of the given string
 -- that appear in the given dictionary file.
 fastAnagrams ::
   Chars
   -> Filename
   -> IO (List Chars)
-fastAnagrams =
-  error "todo: Course.FastAnagrams#fastAnagrams"
+fastAnagrams ls flName = do
+  content <- readFile flName
+  let dicSet = S.fromList (hlist (words content))
+  return $ foldLeft (\acc x -> if x `S.member` dicSet then x:.acc else acc) Nil (permutations ls)
 
 newtype NoCaseString =
   NoCaseString {

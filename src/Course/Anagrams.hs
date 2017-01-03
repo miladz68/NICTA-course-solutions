@@ -7,7 +7,11 @@ module Course.Anagrams where
 import Course.Core
 import Course.List
 import Course.Functor
+import Course.Monad
 
+import Course.Applicative
+import Course.Traversable
+import Course.Optional
 {-
 
 Functions you will need
@@ -32,13 +36,17 @@ anagrams ::
   Chars
   -> Filename
   -> IO (List Chars)
-anagrams =
-  error "todo: Course.Anagrams#anagrams"
+anagrams ls flName = do
+  content <- readFile flName
+  return $ intersectBy equalIgnoringCase (words content) (permutations ls)
+
 
 -- Compare two strings for equality, ignoring case
 equalIgnoringCase ::
   Chars
   -> Chars
   -> Bool
-equalIgnoringCase =
-  error "todo: Course.Anagrams#equalIgnoringCase"
+equalIgnoringCase Nil Nil = True
+equalIgnoringCase _ Nil = False
+equalIgnoringCase Nil _ = False
+equalIgnoringCase (a:.as) (b:.bs) = (toLower a == toLower b) && equalIgnoringCase as bs
