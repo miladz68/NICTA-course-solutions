@@ -33,7 +33,7 @@ After this, the following progression of modules is recommended:
 * `Course.ListZipper` -> Done
 * `Course.Parser` -> Done
 * `Course.MoreParser` -> Done
-* `Course.JsonParser`
+* `Course.JsonParser` -> Done
 * `Course.Interactive`
 * `Course.Anagrams`
 * `Course.FastAnagrams`

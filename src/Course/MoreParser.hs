@@ -397,4 +397,4 @@ betweenSepbyComma ::
   -> Char
   -> Parser a
   -> Parser (List a)
-betweenSepbyComma ch ch2 pa = sepby (betweenCharTok ch ch2 pa) (is ',')
+betweenSepbyComma ch ch2 pa = betweenCharTok ch ch2 (sepby pa (is ',')) 
