@@ -37,4 +37,4 @@ After this, the following progression of modules is recommended:
 * `Course.Interactive` -> Done
 * `Course.Anagrams` -> Done
 * `Course.FastAnagrams` -> Done
-* `Course.Cheque`
+* `Course.Cheque` -> Partially Done

@@ -25,6 +25,7 @@ import Course.List
 import Course.Functor
 import Course.Applicative
 import Course.Monad
+import Course.Parser
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -189,6 +190,17 @@ data Digit =
   | Nine
   deriving (Eq, Enum, Bounded)
 
+
+till20 :: List Chars
+till20 = listh ["ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eigtheen","nineteen"]
+show'10'19 :: Digit -> Optional Chars
+show'10'19 d = index (fromEnum d) till20
+
+show'20'100 :: Digit -> Optional Chars
+show'20'100 d = index ( fromEnum d) twentyTillHundres
+
+twentyTillHundres :: List Chars
+twentyTillHundres = listh ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"]
 showDigit ::
   Digit
   -> Chars
@@ -323,5 +335,51 @@ fromChar _ =
 dollars ::
   Chars
   -> Chars
-dollars =
-  error "todo: Course.Cheque#dollars"
+dollars ch = fromOptional (readInteger 0 (reverse befd)) ++ " dollars and "++ fromOptional (readCent aftd) ++ " cents"
+  where
+    (befd',aftd') = span ( /= '.') ch
+    aftd = filter isDigit aftd'
+    befd = filter isDigit befd'
+
+readCent :: Chars -> Optional Chars
+readCent Nil = Full "zero"
+readCent (a:.Nil) = showDigit3 (D2 <$> fromChar a <*> fromChar '0')
+readCent (a:.b:._) = showDigit3 (D2 <$> fromChar a <*> fromChar b)
+
+readInteger :: Int -> Chars ->  Optional Chars
+readInteger 0 Nil = Full "zero "
+readInteger _ Nil = Full ""
+readInteger n (a:.Nil) = showDigit3 (D1 <$> fromChar a) >>= addSuffix n
+readInteger n (a:.b:.Nil) = showDigit3 (D2 <$> fromChar b <*> fromChar a) >>= addSuffix n
+readInteger n (a:.b:.c:.rest) = pure (++) <*> readInteger (n+1) rest <*>
+              ( showDigit3 (D3 <$> fromChar c <*> fromChar b <*> fromChar a) >>= addSuffix n ) >>= oneSpace
+
+addSuffix :: Int -> Chars -> Optional Chars
+addSuffix _ Nil = pure ""
+addSuffix n chs = (++) <$> pure chs <*> index n illion >>= oneSpace
+
+oneSpace :: Chars -> Optional Chars
+oneSpace Nil = pure Nil
+oneSpace cd =  pure (cd ++ " " )
+
+index :: Int -> List a -> Optional a
+index _ Nil = Empty
+index 0 (a:._) = Full a
+index n (_:.rest) = index (n -1) rest
+
+showDigit3 :: Optional Digit3 -> Optional Chars
+showDigit3 (Full (D1 d1)) |d1 == Zero = Full ""
+                          |otherwise = Full $ showDigit d1
+showDigit3 (Full (D2 d1 d2)) | d1 == Zero = showDigit3 $ Full (D1 d2)
+                             | d1 == One = show'10'19 d2
+                             |otherwise = (++) <$> show'20'100 d1 <*> Full ( " " ++ showDigit d2)
+showDigit3 (Full (D3 d1 d2 d3))
+    |d1 == Zero = showDigit3 ( Full (D2 d2 d3))
+    |otherwise = (++) <$> Full (showDigit d1 ++ " hundred and ") <*> showDigit3 ( Full (D2 d2 d3))
+showDigit3 Empty = Empty
+
+
+
+fromOptional :: Optional Chars -> Chars
+fromOptional (Full d) = d
+fromOptional Empty = ""
